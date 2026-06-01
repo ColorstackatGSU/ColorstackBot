@@ -55,7 +55,7 @@ function createHttpHandler(options = {}) {
     const rawBody = await readRawBody(req);
     const headers = req.headers || {};
 
-    if (!verifyRequest(rawBody, headers, config.discordPublicKey)) {
+    if (!(await verifyRequest(rawBody, headers, config.discordPublicKey))) {
       sendText(res, 401, 'Invalid request signature');
       return;
     }
