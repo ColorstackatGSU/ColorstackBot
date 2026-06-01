@@ -15,21 +15,21 @@ function boolString(value) {
 function rowToMember(row, rowIndex) {
   return {
     rowIndex,
-    fullName: row[0] || '',
-    linkedin: row[1] || '',
-    discordUsername: row[2] || '',
-    studentEmail: row[3] || '',
-    role: row[4] || '',
-    verified: normalizeKey(row[5]) === 'true',
-    dateJoined: row[6] || '',
-    discordUserId: row[7] || '',
-    nationalMemberNumber: row[8] || '',
-    school: row[9] || ''
+    timestamp: row[0] || '',
+    fullName: row[1] || '',
+    linkedin: row[2] || '',
+    discordUsername: row[3] || '',
+    studentEmail: row[4] || '',
+    role: row[5] || '',
+    verified: normalizeKey(row[6]) === 'true',
+    dateJoined: row[7] || '',
+    discordUserId: row[8] || ''
   };
 }
 
 function memberToRow(member) {
   return [
+    member.timestamp || member.dateJoined || new Date().toISOString(),
     member.fullName || '',
     member.linkedin || '',
     member.discordUsername || '',
@@ -37,9 +37,7 @@ function memberToRow(member) {
     member.role || '',
     boolString(member.verified),
     member.dateJoined || new Date().toISOString(),
-    member.discordUserId || '',
-    member.nationalMemberNumber || '',
-    member.school || ''
+    member.discordUserId || ''
   ];
 }
 
@@ -120,7 +118,7 @@ function createSheetsService({ config, sheetsClient } = {}) {
   }
 
   async function listMembers() {
-    const rows = await getValues(`${MEMBERS_SHEET}!A2:J`);
+    const rows = await getValues(`${MEMBERS_SHEET}!A2:I`);
     return rows.map((row, index) => rowToMember(row, index + 2));
   }
 
@@ -137,11 +135,11 @@ function createSheetsService({ config, sheetsClient } = {}) {
   }
 
   async function appendMember(member) {
-    await appendValues(`${MEMBERS_SHEET}!A:J`, [memberToRow(member)]);
+    await appendValues(`${MEMBERS_SHEET}!A:I`, [memberToRow(member)]);
   }
 
   async function updateMember(rowIndex, member) {
-    await updateValues(`${MEMBERS_SHEET}!A${rowIndex}:J${rowIndex}`, [memberToRow(member)]);
+    await updateValues(`${MEMBERS_SHEET}!A${rowIndex}:I${rowIndex}`, [memberToRow(member)]);
   }
 
   async function upsertMember(member) {
@@ -164,11 +162,11 @@ function createSheetsService({ config, sheetsClient } = {}) {
   }
 
   async function updateMemberVerified(rowIndex, verified) {
-    await updateValues(`${MEMBERS_SHEET}!F${rowIndex}:F${rowIndex}`, [[boolString(verified)]]);
+    await updateValues(`${MEMBERS_SHEET}!G${rowIndex}:G${rowIndex}`, [[boolString(verified)]]);
   }
 
   async function updateMemberUserId(rowIndex, discordUserId) {
-    await updateValues(`${MEMBERS_SHEET}!H${rowIndex}:H${rowIndex}`, [[discordUserId]]);
+    await updateValues(`${MEMBERS_SHEET}!I${rowIndex}:I${rowIndex}`, [[discordUserId]]);
   }
 
   async function getUnverifiedMembers() {

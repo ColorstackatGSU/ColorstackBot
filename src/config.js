@@ -4,7 +4,7 @@ function getConfig(env = process.env) {
     discordBotToken: env.DISCORD_BOT_TOKEN,
     discordApplicationId: env.DISCORD_APPLICATION_ID,
     geminiApiKey: env.GEMINI_API_KEY,
-    geminiModel: env.GEMINI_MODEL || 'gemini-1.5-flash',
+    geminiModel: env.GEMINI_MODEL || 'gemini-3.5-flash',
     googleServiceAccountEmail: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     googlePrivateKey: env.GOOGLE_PRIVATE_KEY,
     googleSheetId: env.GOOGLE_SHEET_ID,
@@ -15,6 +15,10 @@ function getConfig(env = process.env) {
     unverifiedChannelId: env.UNVERIFIED_CHANNEL_ID,
     gsuFormUrl: env.GSU_FORM_URL,
     colorStackApplicationUrl: env.COLORSTACK_APPLICATION_URL,
+    gsuEmailDomains: String(env.GSU_EMAIL_DOMAINS || 'student.gsu.edu,gsu.edu')
+      .split(',')
+      .map((domain) => domain.trim().toLowerCase())
+      .filter(Boolean),
     discordApiBaseUrl: env.DISCORD_API_BASE_URL || 'https://discord.com/api/v10',
     maxScreenshotBytes: Number(env.MAX_SCREENSHOT_BYTES || 10 * 1024 * 1024)
   };

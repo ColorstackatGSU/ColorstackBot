@@ -30,26 +30,28 @@ PENDING_CHANNEL_ID=
 UNVERIFIED_CHANNEL_ID=
 GSU_FORM_URL=
 COLORSTACK_APPLICATION_URL=
+GSU_EMAIL_DOMAINS=student.gsu.edu,gsu.edu
 ```
 
 `GOOGLE_PRIVATE_KEY` may be stored with escaped newlines, for example `-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n`.
 
 ## Google Sheet
 
-Create a `members` tab with these columns:
+The `members` tab is the Google Form's linked response tab (rename "Form Responses 1" to `members`). The Form owns columns A–E; the bot writes F–I:
 
-| Column | Field |
-| --- | --- |
-| A | Full Name |
-| B | LinkedIn |
-| C | Discord Username |
-| D | Student Email |
-| E | Role |
-| F | Verified |
-| G | Date Joined |
-| H | Discord User ID |
-| I | National Member Number |
-| J | School |
+| Column | Field | Written by |
+| --- | --- | --- |
+| A | Timestamp | Form |
+| B | Full Name | Form |
+| C | LinkedIn | Form |
+| D | Discord Username | Form |
+| E | Student Email | Form |
+| F | Role (`GSU`, `National`, or `GSU+National`) | Bot |
+| G | Verified | Bot |
+| H | Date Joined | Bot |
+| I | Discord User ID | Bot |
+
+The Form's questions must be ordered Full Name, LinkedIn, Discord Username, Student Email so they land in columns B–E. A National member whose email matches a GSU domain (see `GSU_EMAIL_DOMAINS`) is auto-granted the GSU role and recorded as `GSU+National`; other-chapter members get `National` only.
 
 Create a `pending_verifications` tab with these columns:
 

@@ -20,8 +20,8 @@ test('findMember prefers Discord User ID', async () => {
   const sheets = createSheetsService({
     config: { googleSheetId: 'sheet-1' },
     sheetsClient: fakeSheetsClient([
-      ['Old Name', 'https://linkedin.com/in/old', 'sameuser', 'old@example.com', 'GSU', 'TRUE', '', 'user-1'],
-      ['New Name', 'https://linkedin.com/in/new', 'sameuser', 'new@example.com', 'GSU', 'TRUE', '', 'user-2']
+      ['2026-01-01T00:00:00Z', 'Old Name', 'https://linkedin.com/in/old', 'sameuser', 'old@example.com', 'GSU', 'TRUE', '', 'user-1'],
+      ['2026-01-02T00:00:00Z', 'New Name', 'https://linkedin.com/in/new', 'sameuser', 'new@example.com', 'GSU', 'TRUE', '', 'user-2']
     ])
   });
 
@@ -37,7 +37,7 @@ test('findMember falls back to Discord username when ID is missing', async () =>
   const sheets = createSheetsService({
     config: { googleSheetId: 'sheet-1' },
     sheetsClient: fakeSheetsClient([
-      ['Jane Doe', 'https://linkedin.com/in/jane', 'janedoe', 'jane@example.com', 'GSU', 'FALSE', '', '']
+      ['', 'Jane Doe', 'https://linkedin.com/in/jane', 'janedoe', 'jane@example.com', 'GSU', 'FALSE', '', '']
     ])
   });
 

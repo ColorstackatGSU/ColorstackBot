@@ -12,7 +12,7 @@ const {
 const { ComponentType } = require('../src/utils/constants');
 const { interaction, modalComponent, modalUpload } = require('./helpers');
 
-function nationalInteraction(attachment = {}) {
+function nationalInteraction({ attachment = {}, email = 'ada@student.gsu.edu' } = {}) {
   return interaction({
     type: 5,
     data: {
@@ -20,7 +20,7 @@ function nationalInteraction(attachment = {}) {
       components: [
         modalComponent(FIELD_FULL_NAME, 'Ada Lovelace'),
         modalComponent(FIELD_LINKEDIN, 'linkedin.com/in/ada'),
-        modalComponent(FIELD_EMAIL, 'ada@student.gsu.edu'),
+        modalComponent(FIELD_EMAIL, email),
         modalUpload(FIELD_SCREENSHOT, 'att-1')
       ],
       resolved: {
@@ -102,16 +102,16 @@ test('already-national button returns modal with required file upload', () => {
   assert.equal(fileUpload.max_values, 1);
 });
 
-test('valid national modal assigns both roles and upserts member', async () => {
-  const { calls, services } = nationalServices({
-    valid: true,
-    member_number: '#12345',
-    school: 'Georgia State University'
-  });
+test('gsu email grants both roles and records GSU+National', async () => {
+  const { calls, services } = nationalServices({ valid: true });
 
-  const payload = await processNationalModal(nationalInteraction(), services);
+  const payload = await processNationalModal(
+    nationalInteraction({ email: 'ada@student.gsu.edu' }),
+    services
+  );
 
   assert.match(payload.content, /verified as a ColorStack National Member/);
+  assert.match(payload.content, /GSU access/);
   assert.deepEqual(calls.assignRoles[0], {
     guildId: 'guild-1',
     userId: 'user-1',
@@ -119,8 +119,21 @@ test('valid national modal assigns both roles and upserts member', async () => {
   });
   assert.equal(calls.upsertMember[0].fullName, 'Ada Lovelace');
   assert.equal(calls.upsertMember[0].linkedin, 'https://linkedin.com/in/ada');
-  assert.equal(calls.upsertMember[0].nationalMemberNumber, '#12345');
+  assert.equal(calls.upsertMember[0].role, 'GSU+National');
   assert.deepEqual(calls.updatePendingStatus[0], { userId: 'user-1', status: 'APPROVED' });
+});
+
+test('non-gsu email grants National role only', async () => {
+  const { calls, services } = nationalServices({ valid: true });
+
+  const payload = await processNationalModal(
+    nationalInteraction({ email: 'ada@students.kennesaw.edu' }),
+    services
+  );
+
+  assert.doesNotMatch(payload.content, /GSU access/);
+  assert.deepEqual(calls.assignRoles[0].roleIds, ['role-national']);
+  assert.equal(calls.upsertMember[0].role, 'National');
 });
 
 test('invalid national screenshot creates a pending review record', async () => {
@@ -155,7 +168,7 @@ test('national modal rejects non-image uploads before Gemini', async () => {
   const { calls, services } = nationalServices({ valid: true });
 
   const payload = await processNationalModal(
-    nationalInteraction({ filename: 'profile.pdf', content_type: 'application/pdf' }),
+    nationalInteraction({ attachment: { filename: 'profile.pdf', content_type: 'application/pdf' } }),
     services
   );
 

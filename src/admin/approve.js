@@ -63,12 +63,10 @@ async function processApprove(interaction, services) {
     linkedin,
     discordUsername: getDiscordUsername(targetUser),
     studentEmail,
-    role: role === 'national' ? 'National' : 'GSU',
+    role: role === 'national' ? 'GSU+National' : 'GSU',
     verified: true,
     dateJoined: new Date().toISOString(),
-    discordUserId: targetUser.id,
-    nationalMemberNumber: '',
-    school: ''
+    discordUserId: targetUser.id
   });
 
   await services.sheets.updatePendingStatus(targetUser.id, 'APPROVED');

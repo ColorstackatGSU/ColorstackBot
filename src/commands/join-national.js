@@ -16,6 +16,7 @@ const {
   modalResponse
 } = require('../utils/responses');
 const {
+  isGsuEmail,
   isLikelyEmail,
   isLikelyLinkedInUrl,
   isSupportedImageAttachment,
@@ -193,11 +194,14 @@ async function processNationalModal(interaction, services) {
 
   const user = getInteractionUser(interaction);
   const discordUsername = getDiscordUsername(user);
+  const grantsGsu = isGsuEmail(data.studentEmail, services.config.gsuEmailDomains);
 
   await services.discord.assignRoles({
     guildId: services.config.guildId,
     userId: user.id,
-    roleIds: [services.config.gsuRoleId, services.config.nationalRoleId]
+    roleIds: grantsGsu
+      ? [services.config.gsuRoleId, services.config.nationalRoleId]
+      : [services.config.nationalRoleId]
   });
 
   await services.sheets.upsertMember({
@@ -205,18 +209,18 @@ async function processNationalModal(interaction, services) {
     linkedin: data.linkedin,
     discordUsername,
     studentEmail: data.studentEmail,
-    role: 'National',
+    role: grantsGsu ? 'GSU+National' : 'National',
     verified: true,
     dateJoined: new Date().toISOString(),
-    discordUserId: user.id,
-    nationalMemberNumber: geminiResult.member_number,
-    school: geminiResult.school
+    discordUserId: user.id
   });
 
   await services.sheets.updatePendingStatus(user.id, 'APPROVED');
 
   return {
-    content: 'You are verified as a ColorStack National Member. Your GSU and National server access has been updated.'
+    content: grantsGsu
+      ? 'You are verified as a ColorStack National Member, and your GSU email unlocked GSU access too. Your server roles have been updated.'
+      : 'You are verified as a ColorStack National Member. Your server access has been updated.'
   };
 }
 

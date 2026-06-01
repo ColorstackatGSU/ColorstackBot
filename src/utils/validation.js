@@ -20,6 +20,12 @@ function normalizeLinkedInUrl(value) {
   return input.startsWith('http://') || input.startsWith('https://') ? input : `https://${input}`;
 }
 
+function isGsuEmail(value, domains = ['student.gsu.edu', 'gsu.edu']) {
+  if (!isLikelyEmail(value)) return false;
+  const domain = String(value).trim().toLowerCase().split('@')[1] || '';
+  return domains.some((allowed) => domain === String(allowed).trim().toLowerCase());
+}
+
 function isSupportedImageAttachment(attachment) {
   if (!attachment) return false;
   const contentType = String(attachment.content_type || '').toLowerCase();
@@ -28,6 +34,7 @@ function isSupportedImageAttachment(attachment) {
 }
 
 module.exports = {
+  isGsuEmail,
   isLikelyEmail,
   isLikelyLinkedInUrl,
   isSupportedImageAttachment,
