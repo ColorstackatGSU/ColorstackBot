@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@vercel/functions": "^2.0.0",
     "discord-interactions": "^4.3.0",
     "dotenv": "^16.4.7",
     "googleapis": "^173.0.0"

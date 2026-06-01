@@ -3,6 +3,17 @@ const { createRuntimeServices } = require('../services/runtime');
 const { verifyDiscordRequest } = require('../utils/verify');
 const { createInteractionRouter } = require('./router');
 
+// On Vercel the function is frozen once the HTTP response is sent, which would
+// kill the deferred follow-up work (assign role, edit "thinking..." message).
+// waitUntil keeps the invocation alive until that work settles. It is only
+// available in the Vercel runtime, so fall back to awaiting locally/in tests.
+let waitUntil;
+try {
+  ({ waitUntil } = require('@vercel/functions'));
+} catch {
+  waitUntil = null;
+}
+
 async function readRawBody(req) {
   if (Buffer.isBuffer(req.body)) return req.body.toString('utf8');
   if (typeof req.body === 'string') return req.body;
@@ -75,7 +86,15 @@ function createHttpHandler(options = {}) {
       sendJson(res, 200, result.response);
 
       if (typeof result.afterResponse === 'function') {
-        await result.afterResponse();
+        const followUp = Promise.resolve()
+          .then(() => result.afterResponse())
+          .catch((error) => console.error(error));
+
+        if (waitUntil) {
+          waitUntil(followUp);
+        } else {
+          await followUp;
+        }
       }
     } catch (error) {
       console.error(error);
