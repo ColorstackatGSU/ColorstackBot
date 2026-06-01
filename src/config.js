@@ -1,0 +1,38 @@
+function getConfig(env = process.env) {
+  return {
+    discordPublicKey: env.DISCORD_PUBLIC_KEY,
+    discordBotToken: env.DISCORD_BOT_TOKEN,
+    discordApplicationId: env.DISCORD_APPLICATION_ID,
+    geminiApiKey: env.GEMINI_API_KEY,
+    geminiModel: env.GEMINI_MODEL || 'gemini-1.5-flash',
+    googleServiceAccountEmail: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    googlePrivateKey: env.GOOGLE_PRIVATE_KEY,
+    googleSheetId: env.GOOGLE_SHEET_ID,
+    gsuRoleId: env.GSU_ROLE_ID,
+    nationalRoleId: env.NATIONAL_ROLE_ID,
+    guildId: env.GUILD_ID,
+    pendingChannelId: env.PENDING_CHANNEL_ID,
+    unverifiedChannelId: env.UNVERIFIED_CHANNEL_ID,
+    gsuFormUrl: env.GSU_FORM_URL,
+    colorStackApplicationUrl: env.COLORSTACK_APPLICATION_URL,
+    discordApiBaseUrl: env.DISCORD_API_BASE_URL || 'https://discord.com/api/v10',
+    maxScreenshotBytes: Number(env.MAX_SCREENSHOT_BYTES || 10 * 1024 * 1024)
+  };
+}
+
+function requireConfig(config, keys) {
+  const missing = keys.filter((key) => !config[key]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required configuration: ${missing.join(', ')}`);
+  }
+}
+
+function googlePrivateKey(config) {
+  return String(config.googlePrivateKey || '').replace(/\\n/g, '\n');
+}
+
+module.exports = {
+  getConfig,
+  googlePrivateKey,
+  requireConfig
+};
