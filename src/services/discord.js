@@ -108,6 +108,35 @@ function createDiscordService({ config, fetchImpl = globalThis.fetch } = {}) {
       );
     },
 
+    // Upload raw image bytes as a real file attachment (multipart/form-data) so
+    // the screenshot lives permanently in the channel. Interaction/CDN URLs are
+    // signed and expire, so re-uploading is more reliable for the review queue.
+    async postChannelAttachment(channelId, { content, filename = 'screenshot.png', buffer, contentType = 'image/png' } = {}) {
+      if (!channelId || !buffer) return null;
+      requireConfig(config, ['discordBotToken']);
+
+      const payload = { attachments: [{ id: 0, filename }] };
+      if (content) payload.content = content;
+      payload.allowed_mentions = { parse: [] };
+
+      const form = new FormData();
+      form.append('payload_json', JSON.stringify(payload));
+      form.append('files[0]', new Blob([buffer], { type: contentType }), filename);
+
+      const response = await fetchImpl(`${config.discordApiBaseUrl}/channels/${channelId}/messages`, {
+        method: 'POST',
+        headers: { Authorization: `Bot ${config.discordBotToken}` },
+        body: form
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Discord attachment upload to ${channelId} failed with ${response.status}: ${text}`);
+      }
+
+      return response.json();
+    },
+
     async sendDirectMessage(userId, content) {
       const channel = await discordRequest(
         context,

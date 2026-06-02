@@ -58,7 +58,8 @@ function nationalServices(geminiResult) {
     upsertMember: [],
     updatePendingStatus: [],
     pending: [],
-    posts: []
+    posts: [],
+    attachments: []
   };
 
   return {
@@ -77,6 +78,9 @@ function nationalServices(geminiResult) {
         },
         async postChannelMessage(channelId, payload) {
           calls.posts.push({ channelId, payload });
+        },
+        async postChannelAttachment(channelId, payload) {
+          calls.attachments.push({ channelId, payload });
         }
       },
       gemini: {
@@ -161,7 +165,13 @@ test('invalid national screenshot creates a pending review record', async () => 
   assert.match(payload.content, /doesn't look like a ColorStack profile/);
   assert.equal(calls.assignRoles.length, 0);
   assert.equal(calls.pending.length, 1);
-  assert.equal(calls.posts[0].channelId, 'chan-pending');
+
+  // The uploaded screenshot is re-posted to the admin pending channel.
+  assert.equal(calls.attachments.length, 1);
+  assert.equal(calls.attachments[0].channelId, 'chan-pending');
+  assert.equal(calls.attachments[0].payload.filename, 'profile.png');
+  assert.ok(Buffer.isBuffer(calls.attachments[0].payload.buffer));
+  assert.match(calls.attachments[0].payload.content, /needs review/);
 });
 
 test('malformed Gemini JSON creates a pending review record', async () => {

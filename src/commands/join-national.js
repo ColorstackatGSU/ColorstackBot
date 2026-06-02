@@ -137,7 +137,7 @@ function nationalValidationErrors(data) {
   return errors;
 }
 
-async function createPendingNational(interaction, services, data, reason, geminiResult = null) {
+async function createPendingNational(interaction, services, data, reason, geminiResult = null, image = null) {
   const user = getInteractionUser(interaction);
   const discordUsername = getDiscordUsername(user);
 
@@ -157,10 +157,28 @@ async function createPendingNational(interaction, services, data, reason, gemini
     reason
   });
 
+  const caption = [
+    `**National verification needs review**`,
+    `Member: ${discordUsername} (${user.id})`,
+    `Name: ${data.fullName}`,
+    `LinkedIn: ${data.linkedin}`,
+    `Email: ${data.studentEmail}`,
+    `Reason: ${reason}`
+  ].join('\n');
+
   try {
-    await services.discord.postChannelMessage(services.config.pendingChannelId, {
-      content: `National verification needs review for ${discordUsername} (${user.id}). Reason: ${reason}`
-    });
+    if (image?.buffer) {
+      await services.discord.postChannelAttachment(services.config.pendingChannelId, {
+        content: caption,
+        filename: data.screenshot?.filename || 'screenshot.png',
+        buffer: image.buffer,
+        contentType: image.mimeType || data.screenshot?.content_type || 'image/png'
+      });
+    } else {
+      await services.discord.postChannelMessage(services.config.pendingChannelId, {
+        content: caption
+      });
+    }
   } catch (error) {
     console.error(error);
   }
@@ -186,7 +204,7 @@ async function processNationalModal(interaction, services) {
     const reason = geminiResult.parseError
       ? 'Gemini returned malformed JSON while checking the screenshot.'
       : 'Gemini could not verify the screenshot as a ColorStack public profile.';
-    await createPendingNational(interaction, services, data, reason, geminiResult);
+    await createPendingNational(interaction, services, data, reason, geminiResult, image);
 
     if (geminiResult.parseError) {
       return {
