@@ -7,10 +7,24 @@ const {
   FIELD_SCREENSHOT,
   NATIONAL_MODAL_ID,
   handleAlreadyNational,
+  handleJoinNational,
   processNationalModal
 } = require('../src/commands/join-national');
-const { ComponentType } = require('../src/utils/constants');
-const { interaction, modalComponent, modalUpload } = require('./helpers');
+const { ComponentType, InteractionResponseType } = require('../src/utils/constants');
+const { interaction, modalComponent, modalUpload, user } = require('./helpers');
+
+test('Join National short-circuits when the user already has the National role', () => {
+  const result = handleJoinNational(
+    interaction({
+      data: { custom_id: 'btn_join_national' },
+      member: { permissions: '0', user: user(), roles: ['role-national'] }
+    }),
+    { config: { nationalRoleId: 'role-national' } }
+  );
+
+  assert.equal(result.response.type, InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
+  assert.match(result.response.data.content, /already verified as a ColorStack National Member/);
+});
 
 function nationalInteraction({ attachment = {}, email = 'ada@student.gsu.edu' } = {}) {
   return interaction({

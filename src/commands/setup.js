@@ -1,6 +1,7 @@
 const { ButtonStyle, ComponentType } = require('../utils/constants');
+const { deferredEphemeral } = require('../utils/deferred');
 const { channelMention, hasManageGuild } = require('../utils/interaction');
-const { ephemeralMessage, publicMessage } = require('../utils/responses');
+const { ephemeralMessage } = require('../utils/responses');
 
 function welcomeComponents() {
   return [
@@ -47,11 +48,23 @@ function handleSetup(interaction, services) {
     };
   }
 
-  return {
-    response: publicMessage(welcomeMessage(services.config), {
+  const channelId = interaction.channel_id || interaction.channel?.id;
+  if (!channelId) {
+    return {
+      response: ephemeralMessage('Could not determine which channel to post in.')
+    };
+  }
+
+  return deferredEphemeral(interaction, services, async () => {
+    await services.discord.postWebhookMessage(channelId, {
+      content: welcomeMessage(services.config),
       components: welcomeComponents()
-    })
-  };
+    });
+
+    return {
+      content: `Posted the welcome message in ${channelMention(channelId)}.`
+    };
+  });
 }
 
 module.exports = {

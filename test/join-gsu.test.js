@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const { createInteractionRouter } = require('../src/interactions/router');
 const { InteractionResponseType } = require('../src/utils/constants');
-const { interaction } = require('./helpers');
+const { interaction, user } = require('./helpers');
 
 function servicesWithMember(member) {
   const calls = {
@@ -74,6 +74,22 @@ test('/join-gsu assigns role and updates verification/user id', async () => {
   assert.deepEqual(calls.updateVerified[0], { rowIndex: 2, verified: true });
   assert.deepEqual(calls.updateUserId[0], { rowIndex: 2, discordUserId: 'user-1' });
   assert.match(calls.edit[0].content, /verified as a GSU Member/);
+});
+
+test('/join-gsu short-circuits when the user already has the GSU role', async () => {
+  const { calls, services } = servicesWithMember({ rowIndex: 2, verified: true });
+  const router = createInteractionRouter(services);
+
+  const result = await router.handle(interaction({
+    data: { name: 'join-gsu' },
+    member: { permissions: '0', user: user(), roles: ['role-gsu'] }
+  }));
+
+  assert.equal(result.response.type, InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
+  assert.match(result.response.data.content, /already verified as a GSU Member/);
+  assert.equal(typeof result.afterResponse, 'undefined');
+  assert.equal(calls.findMember.length, 0);
+  assert.equal(calls.assignRole.length, 0);
 });
 
 test('/join-gsu returns form link when user is not in the sheet', async () => {

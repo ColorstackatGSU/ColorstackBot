@@ -9,7 +9,8 @@ const {
   getDiscordUsername,
   getInteractionUser,
   getModalAttachment,
-  getModalTextValue
+  getModalTextValue,
+  memberHasRole
 } = require('../utils/interaction');
 const {
   ephemeralMessage,
@@ -51,7 +52,13 @@ function nationalChoiceComponents() {
   ];
 }
 
-function handleJoinNational() {
+function handleJoinNational(interaction, services) {
+  if (memberHasRole(interaction, services.config.nationalRoleId)) {
+    return {
+      response: ephemeralMessage('You are already verified as a ColorStack National Member. ✅')
+    };
+  }
+
   return {
     response: ephemeralMessage('Are you already a ColorStack National member, or would you like to apply?', {
       components: nationalChoiceComponents()

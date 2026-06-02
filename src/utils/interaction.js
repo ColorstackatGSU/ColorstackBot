@@ -12,6 +12,15 @@ function getDiscordUsername(user) {
   return user.username || '';
 }
 
+function getMemberRoleIds(interaction) {
+  const roles = interaction.member?.roles;
+  return Array.isArray(roles) ? roles : [];
+}
+
+function memberHasRole(interaction, roleId) {
+  return roleId ? getMemberRoleIds(interaction).includes(roleId) : false;
+}
+
 function getMemberPermissions(interaction) {
   const permissions = interaction.member?.permissions;
   if (permissions === undefined || permissions === null || permissions === '') {
@@ -100,8 +109,10 @@ module.exports = {
   getInteractionUser,
   getModalAttachment,
   getModalTextValue,
+  getMemberRoleIds,
   getOption,
   getStringOption,
   getUserOption,
-  hasManageGuild
+  hasManageGuild,
+  memberHasRole
 };

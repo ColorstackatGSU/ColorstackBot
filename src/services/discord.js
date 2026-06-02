@@ -122,6 +122,59 @@ function createDiscordService({ config, fetchImpl = globalThis.fetch } = {}) {
       );
     },
 
+    // Reuse the application-owned webhook for this channel if we already made
+    // one, otherwise create it. Webhooks created by the bot are owned by the
+    // application, which is what lets their messages carry interactive
+    // components (buttons) that route back to this bot. Manually-created
+    // "incoming" webhooks cannot send components.
+    async getOrCreateChannelWebhook(channelId, name) {
+      requireConfig(config, ['discordApplicationId']);
+
+      const existing = await discordRequest(
+        context,
+        `/channels/${channelId}/webhooks`,
+        { method: 'GET' }
+      );
+
+      const owned = Array.isArray(existing)
+        ? existing.find(
+            (hook) =>
+              hook.application_id === config.discordApplicationId && hook.token
+          )
+        : null;
+
+      if (owned) return owned;
+
+      return discordRequest(context, `/channels/${channelId}/webhooks`, {
+        method: 'POST',
+        body: { name }
+      });
+    },
+
+    // Post a message that displays under a custom name/avatar but still carries
+    // working buttons, by executing an application-owned webhook.
+    async postWebhookMessage(channelId, { username, avatarUrl, content, components } = {}) {
+      const webhook = await this.getOrCreateChannelWebhook(
+        channelId,
+        config.welcomeWebhookName || 'ColorStack GSU'
+      );
+
+      const body = {
+        content,
+        username: username || config.welcomeWebhookName,
+        components,
+        allowed_mentions: { parse: [] }
+      };
+      const avatar = avatarUrl || config.welcomeWebhookAvatarUrl;
+      if (avatar) body.avatar_url = avatar;
+
+      return webhookRequest(
+        context,
+        `/webhooks/${webhook.id}/${webhook.token}?wait=true`,
+        { method: 'POST', body }
+      );
+    },
+
     async editOriginalInteractionResponse(interaction, payload) {
       const applicationId = interaction.application_id || config.discordApplicationId;
       if (!applicationId || !interaction.token) {

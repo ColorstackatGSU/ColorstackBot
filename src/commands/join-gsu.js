@@ -3,8 +3,10 @@ const { deferredEphemeral } = require('../utils/deferred');
 const {
   channelMention,
   getDiscordUsername,
-  getInteractionUser
+  getInteractionUser,
+  memberHasRole
 } = require('../utils/interaction');
+const { ephemeralMessage } = require('../utils/responses');
 
 function formUrl(config) {
   return config.gsuFormUrl || '[form link]';
@@ -47,6 +49,12 @@ async function processJoinGsu(interaction, services) {
 }
 
 function handleJoinGsu(interaction, services) {
+  if (memberHasRole(interaction, services.config.gsuRoleId)) {
+    return {
+      response: ephemeralMessage('You are already verified as a GSU Member. ✅')
+    };
+  }
+
   return deferredEphemeral(interaction, services, () => processJoinGsu(interaction, services));
 }
 
