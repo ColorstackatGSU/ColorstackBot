@@ -28,16 +28,29 @@ function welcomeComponents() {
 function welcomeMessage(config) {
   const fallback = channelMention(config.unverifiedChannelId, 'unverified-general');
   return [
-    'Welcome to ColorStack GSU!',
+    '# 👋 Welcome to ColorStack GSU!',
     '',
-    '[Server rules here]',
+    'We\'re the Georgia State University chapter of **ColorStack** — a community dedicated to increasing the number of underrepresented students in computing. We\'re so glad you\'re here. 🎉',
     '',
-    'To get access, click the button that applies to you below.',
-    '- GSU Member: For Georgia State University students',
-    '- ColorStack National Member: For students already in ColorStack nationally',
+    '## 📜 Server Rules',
     '',
-    'National members automatically get GSU access too.',
-    `If you run into any issues, drop a message in ${fallback}.`
+    '**1. Be respectful.** Treat everyone with kindness and professionalism. Harassment, hate speech, and discrimination of any kind are not tolerated.',
+    '**2. Keep it relevant.** Post in the channel that fits your topic, and keep conversations on-topic.',
+    '**3. No spam or unsolicited self-promotion.** Don\'t advertise, mass-DM members, or post referral/affiliate links without approval from an admin.',
+    '**4. Stay professional.** This is a space tied to your career. Keep content safe-for-work and free of NSFW or illegal material.',
+    '**5. Follow the rules everywhere.** Discord\'s Community Guidelines and the ColorStack Code of Conduct apply at all times.',
+    '',
+    '> Breaking these rules may result in a warning, kick, or ban at the moderators\' discretion.',
+    '',
+    '## ✅ Getting Access',
+    '',
+    'Click the button below that applies to you:',
+    '- 🟦 **Join as GSU Member** — for Georgia State University students',
+    '- 🟩 **Join as National Member** — for students already in ColorStack nationally',
+    '',
+    '*National members with a GSU email automatically get GSU access too.*',
+    '',
+    `Run into any issues? Drop a message in ${fallback} and an admin will help you out.`
   ].join('\n');
 }
 
