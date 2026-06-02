@@ -28,7 +28,7 @@ function welcomeComponents() {
 function welcomeMessage(config) {
   const fallback = channelMention(config.unverifiedChannelId, 'unverified-general');
   return [
-    '# Welcome to ColorStack GSU!',
+    '# 👋 Welcome to ColorStack GSU!',
     '',
     'We\'re the Georgia State University chapter of **ColorStack**, a community dedicated to increasing the number of underrepresented students in computing. We\'re so glad you\'re here.',
     '',
@@ -45,8 +45,8 @@ function welcomeMessage(config) {
     '## Getting Access',
     '',
     'Click the button below that applies to you:',
-    '- **Join as GSU Member**: for Georgia State University students',
-    '- **Join as National Member**: for students already in ColorStack nationally',
+    '- 🟦 **Join as GSU Member**: for Georgia State University students',
+    '- 🟩 **Join as National Member**: for students already in ColorStack nationally',
     '',
     '*National members with a GSU email automatically get GSU access too.*',
     '',
