@@ -15,7 +15,7 @@ function getConfig(env = process.env) {
     unverifiedChannelId: env.UNVERIFIED_CHANNEL_ID,
     gsuFormUrl: env.GSU_FORM_URL,
     colorStackApplicationUrl: env.COLORSTACK_APPLICATION_URL,
-    welcomeWebhookName: env.WELCOME_WEBHOOK_NAME || 'ColorStack GSU',
+    welcomeWebhookName: env.WELCOME_WEBHOOK_NAME || 'ColorStack @ GSU',
     welcomeWebhookAvatarUrl: env.WELCOME_WEBHOOK_AVATAR_URL || undefined,
     gsuEmailDomains: String(env.GSU_EMAIL_DOMAINS || 'student.gsu.edu,gsu.edu')
       .split(',')

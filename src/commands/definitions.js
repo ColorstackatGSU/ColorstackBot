@@ -8,11 +8,11 @@ function buildCommands() {
   return [
     {
       name: 'verify',
-      description: 'Verify your ColorStack GSU membership from the member form.'
+      description: 'Verify your ColorStack @ GSU membership from the member form.'
     },
     {
       name: 'setup',
-      description: 'Post the ColorStack GSU welcome and verification buttons.',
+      description: 'Post the ColorStack @ GSU welcome and verification button.',
       default_member_permissions: adminPermissionString()
     },
     {

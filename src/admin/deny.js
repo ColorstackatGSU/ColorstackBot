@@ -24,7 +24,7 @@ async function processDeny(interaction, services) {
   }
 
   const fallback = channelMention(services.config.unverifiedChannelId, 'unverified-general');
-  const message = `Your ColorStack GSU verification was not approved. Please contact an admin in ${fallback} for help.`;
+  const message = `Your ColorStack @ GSU verification was not approved. Please contact an admin in ${fallback} for help.`;
   let dmStatus = 'I sent them a DM.';
 
   try {

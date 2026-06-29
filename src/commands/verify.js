@@ -51,8 +51,8 @@ async function processVerify(interaction, services) {
 
   return {
     content: isNational
-      ? 'You are verified as a ColorStack GSU and National Member. Your server access has been updated. ✅'
-      : 'You are verified as a ColorStack GSU Member. Your server access has been updated. ✅'
+      ? 'You are verified as a member of ColorStack @ GSU and as a ColorStack National Member. Your server access has been updated. ✅'
+      : 'You are verified as a member of ColorStack @ GSU. Your server access has been updated. ✅'
   };
 }
 

@@ -185,7 +185,7 @@ function createDiscordService({ config, fetchImpl = globalThis.fetch } = {}) {
     async postWebhookMessage(channelId, { username, avatarUrl, content, components, allowedMentions } = {}) {
       const webhook = await this.getOrCreateChannelWebhook(
         channelId,
-        config.welcomeWebhookName || 'ColorStack GSU'
+        config.welcomeWebhookName || 'ColorStack @ GSU'
       );
 
       const body = {

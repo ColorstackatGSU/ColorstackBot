@@ -46,7 +46,7 @@ test('setup posts the welcome message through a webhook in the channel', async (
   const { channelId, payload } = svc.discord.posted[0];
   assert.equal(channelId, 'welcome-channel');
   assert.deepEqual(payload.components, welcomeComponents());
-  assert.match(payload.content, /Welcome to ColorStack GSU/);
+  assert.match(payload.content, /Welcome to ColorStack @ GSU/);
 
   // The admin's ephemeral spinner is resolved with a confirmation.
   assert.equal(svc.discord.edits.length, 1);

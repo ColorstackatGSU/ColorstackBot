@@ -21,10 +21,17 @@ function welcomeComponents() {
 
 function welcomeMessage(config) {
   const fallback = channelMention(config.unverifiedChannelId, 'unverified-general');
+  const formUrl = config.gsuFormUrl || '[member form link]';
   return [
-    '# 👋 Welcome to ColorStack GSU!',
+    '@everyone',
     '',
-    'We\'re the Georgia State University chapter of **ColorStack**, a community dedicated to increasing the number of underrepresented students in computing. We\'re so glad you\'re here.',
+    '# 👋 Welcome to ColorStack @ GSU!',
+    '',
+    'We\'re the Georgia State University chapter of **ColorStack**, a community dedicated to increasing the number of Black and Latinx students in computing. We\'re so glad you\'re here.',
+    '',
+    '🎉 **ColorStack is back for the 2026/2027 session!** To kick things off, we need everyone to fill out our member form. **Please do this as soon as possible** so we can get you set up and verified.',
+    '',
+    `👉 **Fill out the member form right now:** ${formUrl}`,
     '',
     '## Server Rules',
     '',
@@ -38,7 +45,8 @@ function welcomeMessage(config) {
     '',
     '## Getting Access',
     '',
-    'First, fill out our member form (link in the channels above). Then click **Verify Membership** below.',
+    `**1. Fill out our member form:** ${formUrl}`,
+    '**2. Come back and click the `Verify Membership` button below.**',
     '',
     'We\'ll match you to your form response and set you up automatically. If you marked that you\'re a ColorStack National member, you\'ll get National access too.',
     '',
@@ -63,7 +71,8 @@ function handleSetup(interaction, services) {
   return deferredEphemeral(interaction, services, async () => {
     await services.discord.postWebhookMessage(channelId, {
       content: welcomeMessage(services.config),
-      components: welcomeComponents()
+      components: welcomeComponents(),
+      allowedMentions: { parse: ['everyone'] }
     });
 
     return {

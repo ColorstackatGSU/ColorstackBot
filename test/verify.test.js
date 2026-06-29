@@ -72,7 +72,7 @@ test('the verify button grants GSU only when the member did not apply nationally
   });
   assert.equal(calls.upsertMember[0].role, 'GSU');
   assert.equal(calls.upsertMember[0].fullName, 'Ada Lovelace');
-  assert.match(calls.edit[0].content, /verified as a ColorStack GSU Member/);
+  assert.match(calls.edit[0].content, /verified as a member of ColorStack @ GSU/);
 });
 
 test('the verify button grants GSU and National when the member applied nationally', async () => {
@@ -87,7 +87,7 @@ test('the verify button grants GSU and National when the member applied national
 
   assert.deepEqual(calls.assignRoles[0].roleIds, ['role-gsu', 'role-national']);
   assert.equal(calls.upsertMember[0].role, 'GSU+National');
-  assert.match(calls.edit[0].content, /GSU and National Member/);
+  assert.match(calls.edit[0].content, /ColorStack @ GSU and as a ColorStack National Member/);
 });
 
 test('the verify button points members with no form submission to the form', async () => {
