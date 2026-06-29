@@ -182,7 +182,7 @@ function createDiscordService({ config, fetchImpl = globalThis.fetch } = {}) {
 
     // Post a message that displays under a custom name/avatar but still carries
     // working buttons, by executing an application-owned webhook.
-    async postWebhookMessage(channelId, { username, avatarUrl, content, components } = {}) {
+    async postWebhookMessage(channelId, { username, avatarUrl, content, components, allowedMentions } = {}) {
       const webhook = await this.getOrCreateChannelWebhook(
         channelId,
         config.welcomeWebhookName || 'ColorStack GSU'
@@ -192,7 +192,9 @@ function createDiscordService({ config, fetchImpl = globalThis.fetch } = {}) {
         content,
         username: username || config.welcomeWebhookName,
         components,
-        allowed_mentions: { parse: [] }
+        // Default to suppressing every mention; callers opt in (e.g. @everyone
+        // announcements) by passing allowedMentions explicitly.
+        allowed_mentions: allowedMentions || { parse: [] }
       };
       const avatar = avatarUrl || config.welcomeWebhookAvatarUrl;
       if (avatar) body.avatar_url = avatar;

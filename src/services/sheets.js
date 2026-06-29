@@ -21,6 +21,13 @@ const FORM_COLUMN = {
   appliedNational: 13
 };
 
+// A1 notation requires sheet/tab names with spaces or special characters to be
+// wrapped in single quotes (e.g. 'Form Responses 1'!A2:N). Embedded single
+// quotes are escaped by doubling them.
+function quoteSheetName(name) {
+  return `'${String(name).replace(/'/g, "''")}'`;
+}
+
 function normalizeKey(value) {
   return String(value || '').trim().toLowerCase();
 }
@@ -118,8 +125,9 @@ function createGoogleSheetsClient(config) {
 function createSheetsService({ config, sheetsClient } = {}) {
   const client = sheetsClient || createGoogleSheetsClient(config);
   const spreadsheetId = config.googleSheetId;
-  const formSheet = config.formResponsesSheet || FORM_RESPONSES_SHEET;
-  const membersSheet = config.membersSheet || MEMBERS_SHEET;
+  const formSheet = quoteSheetName(config.formResponsesSheet || FORM_RESPONSES_SHEET);
+  const membersSheet = quoteSheetName(config.membersSheet || MEMBERS_SHEET);
+  const pendingSheet = quoteSheetName(PENDING_SHEET);
 
   async function getValues(range) {
     const response = await client.spreadsheets.values.get({
@@ -233,22 +241,22 @@ function createSheetsService({ config, sheetsClient } = {}) {
   // --- Manual admin review queue --------------------------------------------
 
   async function appendPendingVerification(record) {
-    await appendValues(`${PENDING_SHEET}!A:G`, [pendingToRow(record)]);
+    await appendValues(`${pendingSheet}!A:G`, [pendingToRow(record)]);
   }
 
   async function getPendingVerifications(status = 'PENDING') {
-    const rows = await getValues(`${PENDING_SHEET}!A2:G`);
+    const rows = await getValues(`${pendingSheet}!A2:G`);
     const records = rows.map((row, index) => rowToPending(row, index + 2));
     return status ? records.filter((record) => normalizeKey(record.status) === normalizeKey(status)) : records;
   }
 
   async function updatePendingStatus(discordUserId, status) {
-    const rows = await getValues(`${PENDING_SHEET}!A2:G`);
+    const rows = await getValues(`${pendingSheet}!A2:G`);
     const records = rows.map((row, index) => rowToPending(row, index + 2));
     const matching = records.filter((record) => record.discordUserId === discordUserId);
 
     for (const record of matching) {
-      await updateValues(`${PENDING_SHEET}!E${record.rowIndex}:E${record.rowIndex}`, [[status]]);
+      await updateValues(`${pendingSheet}!E${record.rowIndex}:E${record.rowIndex}`, [[status]]);
     }
 
     return matching.length;
