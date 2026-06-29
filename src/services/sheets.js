@@ -1,8 +1,25 @@
 const { google } = require('googleapis');
 const { googlePrivateKey, requireConfig } = require('../config');
 
+// The bot owns the `members` and `pending_verifications` tabs. The Google Form
+// owns its own response tab (read-only for the bot); we only look members up
+// there to read what they submitted.
+const FORM_RESPONSES_SHEET = 'Form Responses 1';
 const MEMBERS_SHEET = 'members';
 const PENDING_SHEET = 'pending_verifications';
+
+// Zero-based column positions of the fields we read from the Google Form's
+// response tab. Everything else on the form is ignored by the bot.
+const FORM_COLUMN = {
+  timestamp: 0,
+  firstName: 1,
+  lastName: 2,
+  personalEmail: 3,
+  studentEmail: 4,
+  linkedin: 5,
+  discordUsername: 10,
+  appliedNational: 13
+};
 
 function normalizeKey(value) {
   return String(value || '').trim().toLowerCase();
@@ -12,32 +29,48 @@ function boolString(value) {
   return value ? 'TRUE' : 'FALSE';
 }
 
+function rowToFormResponse(row, rowIndex) {
+  const firstName = row[FORM_COLUMN.firstName] || '';
+  const lastName = row[FORM_COLUMN.lastName] || '';
+  return {
+    rowIndex,
+    timestamp: row[FORM_COLUMN.timestamp] || '',
+    firstName,
+    lastName,
+    fullName: `${firstName} ${lastName}`.trim(),
+    personalEmail: row[FORM_COLUMN.personalEmail] || '',
+    studentEmail: row[FORM_COLUMN.studentEmail] || '',
+    linkedin: row[FORM_COLUMN.linkedin] || '',
+    discordUsername: row[FORM_COLUMN.discordUsername] || '',
+    appliedNational: normalizeKey(row[FORM_COLUMN.appliedNational]) === 'yes'
+  };
+}
+
+// The `members` tab is fully bot-owned, so the column order is ours to define.
 function rowToMember(row, rowIndex) {
   return {
     rowIndex,
-    timestamp: row[0] || '',
-    fullName: row[1] || '',
-    linkedin: row[2] || '',
-    discordUsername: row[3] || '',
-    studentEmail: row[4] || '',
+    discordUserId: row[0] || '',
+    discordUsername: row[1] || '',
+    fullName: row[2] || '',
+    studentEmail: row[3] || '',
+    linkedin: row[4] || '',
     role: row[5] || '',
     verified: normalizeKey(row[6]) === 'true',
-    dateJoined: row[7] || '',
-    discordUserId: row[8] || ''
+    dateJoined: row[7] || ''
   };
 }
 
 function memberToRow(member) {
   return [
-    member.timestamp || member.dateJoined || new Date().toISOString(),
-    member.fullName || '',
-    member.linkedin || '',
+    member.discordUserId || '',
     member.discordUsername || '',
+    member.fullName || '',
     member.studentEmail || '',
+    member.linkedin || '',
     member.role || '',
     boolString(member.verified),
-    member.dateJoined || new Date().toISOString(),
-    member.discordUserId || ''
+    member.dateJoined || new Date().toISOString()
   ];
 }
 
@@ -85,6 +118,8 @@ function createGoogleSheetsClient(config) {
 function createSheetsService({ config, sheetsClient } = {}) {
   const client = sheetsClient || createGoogleSheetsClient(config);
   const spreadsheetId = config.googleSheetId;
+  const formSheet = config.formResponsesSheet || FORM_RESPONSES_SHEET;
+  const membersSheet = config.membersSheet || MEMBERS_SHEET;
 
   async function getValues(range) {
     const response = await client.spreadsheets.values.get({
@@ -117,8 +152,29 @@ function createSheetsService({ config, sheetsClient } = {}) {
     });
   }
 
+  // --- Google Form response tab (read-only) ---------------------------------
+
+  async function listFormResponses() {
+    const rows = await getValues(`${formSheet}!A2:N`);
+    return rows.map((row, index) => rowToFormResponse(row, index + 2));
+  }
+
+  async function findFormResponse({ discordUsername }) {
+    const usernameKey = normalizeKey(discordUsername);
+    if (!usernameKey) return null;
+
+    const responses = await listFormResponses();
+    // A member may resubmit the form; use their most recent response.
+    const matches = responses.filter(
+      (response) => normalizeKey(response.discordUsername) === usernameKey
+    );
+    return matches.length > 0 ? matches[matches.length - 1] : null;
+  }
+
+  // --- Bot-owned members tab ------------------------------------------------
+
   async function listMembers() {
-    const rows = await getValues(`${MEMBERS_SHEET}!A2:I`);
+    const rows = await getValues(`${membersSheet}!A2:H`);
     return rows.map((row, index) => rowToMember(row, index + 2));
   }
 
@@ -135,11 +191,11 @@ function createSheetsService({ config, sheetsClient } = {}) {
   }
 
   async function appendMember(member) {
-    await appendValues(`${MEMBERS_SHEET}!A:I`, [memberToRow(member)]);
+    await appendValues(`${membersSheet}!A:H`, [memberToRow(member)]);
   }
 
   async function updateMember(rowIndex, member) {
-    await updateValues(`${MEMBERS_SHEET}!A${rowIndex}:I${rowIndex}`, [memberToRow(member)]);
+    await updateValues(`${membersSheet}!A${rowIndex}:H${rowIndex}`, [memberToRow(member)]);
   }
 
   async function upsertMember(member) {
@@ -162,17 +218,19 @@ function createSheetsService({ config, sheetsClient } = {}) {
   }
 
   async function updateMemberVerified(rowIndex, verified) {
-    await updateValues(`${MEMBERS_SHEET}!G${rowIndex}:G${rowIndex}`, [[boolString(verified)]]);
+    await updateValues(`${membersSheet}!G${rowIndex}:G${rowIndex}`, [[boolString(verified)]]);
   }
 
   async function updateMemberUserId(rowIndex, discordUserId) {
-    await updateValues(`${MEMBERS_SHEET}!I${rowIndex}:I${rowIndex}`, [[discordUserId]]);
+    await updateValues(`${membersSheet}!A${rowIndex}:A${rowIndex}`, [[discordUserId]]);
   }
 
   async function getUnverifiedMembers() {
     const members = await listMembers();
     return members.filter((member) => !member.verified);
   }
+
+  // --- Manual admin review queue --------------------------------------------
 
   async function appendPendingVerification(record) {
     await appendValues(`${PENDING_SHEET}!A:G`, [pendingToRow(record)]);
@@ -199,9 +257,11 @@ function createSheetsService({ config, sheetsClient } = {}) {
   return {
     appendMember,
     appendPendingVerification,
+    findFormResponse,
     findMember,
     getPendingVerifications,
     getUnverifiedMembers,
+    listFormResponses,
     listMembers,
     updateMember,
     updateMemberUserId,
@@ -212,11 +272,14 @@ function createSheetsService({ config, sheetsClient } = {}) {
 }
 
 module.exports = {
+  FORM_COLUMN,
+  FORM_RESPONSES_SHEET,
   MEMBERS_SHEET,
   PENDING_SHEET,
   createSheetsService,
   memberToRow,
   pendingToRow,
+  rowToFormResponse,
   rowToMember,
   rowToPending
 };

@@ -19,7 +19,7 @@ function interaction(overrides = {}) {
       user: user()
     },
     data: {
-      name: 'join-gsu'
+      name: 'verify'
     },
     ...overrides
   };

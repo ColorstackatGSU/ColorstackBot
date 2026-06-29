@@ -9,10 +9,9 @@ test('registers the expected slash commands', () => {
   assert.deepEqual(names, [
     'approve',
     'deny',
-    'join-gsu',
-    'join-national',
     'pending',
-    'setup'
+    'setup',
+    'verify'
   ]);
 });
 

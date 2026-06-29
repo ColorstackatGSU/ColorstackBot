@@ -1,105 +1,60 @@
 # ColorStack GSU Discord Bot
 
-HTTP interactions-only Discord bot for the ColorStack GSU chapter server. It runs as a Vercel serverless function, verifies members through Discord slash commands and buttons, stores state in Google Sheets, and uses Gemini to check ColorStack National profile screenshots.
+The verification bot for the **ColorStack at Georgia State University** Discord server.
+It gives new members their roles automatically, based on a single Google Form they fill
+out when they join, so admins don't have to vet and assign roles by hand.
 
-## Stack
+## What it does
 
-- Node.js 20+
-- Vercel serverless functions
-- `discord-interactions` for request signature verification
-- Raw Discord REST API calls for roles, DMs, interaction edits, and channel messages
-- Google Sheets via `googleapis`
-- Gemini via `@google/generative-ai`
+When someone joins the server, they land in a welcome channel with a single
+**Verify Membership** button. After they've filled out the chapter's Google Form, clicking
+it makes the bot:
 
-## Environment
+1. Look the person up in the form responses by their **Discord username**.
+2. Read what they submitted (name, student email, LinkedIn, and whether they're a
+   ColorStack National member).
+3. Grant the matching Discord role(s) and record them as a verified member.
 
-Copy `.env.example` to `.env.local` for local scripts, then add the same values in Vercel:
+Everyone with a form submission is a GSU chapter member, so they get the **GSU** role.
+Anyone who marked that they're a ColorStack National member also gets the **National**
+role and is recorded as `GSU+National`.
 
-```text
-DISCORD_PUBLIC_KEY=
-DISCORD_BOT_TOKEN=
-DISCORD_APPLICATION_ID=
-GEMINI_API_KEY=
-GOOGLE_SERVICE_ACCOUNT_EMAIL=
-GOOGLE_PRIVATE_KEY=
-GOOGLE_SHEET_ID=
-GSU_ROLE_ID=
-NATIONAL_ROLE_ID=
-GUILD_ID=
-PENDING_CHANNEL_ID=
-UNVERIFIED_CHANNEL_ID=
-GSU_FORM_URL=
-COLORSTACK_APPLICATION_URL=
-GSU_EMAIL_DOMAINS=student.gsu.edu,gsu.edu
-```
+If the bot can't find someone's form submission, it replies with a friendly nudge pointing
+them to the form instead of granting anything.
 
-`GOOGLE_PRIVATE_KEY` may be stored with escaped newlines, for example `-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n`.
+## Why it works this way
 
-## Google Sheet
+Everything keys off **one form**. There's no screenshot upload, no image recognition,
+and no manual back-and-forth for the common case — membership is decided by the answers
+the member already gave on the form. Admins keep a manual override (`/approve`, `/deny`)
+for the rare cases that need a human.
 
-The `members` tab is the Google Form's linked response tab (rename "Form Responses 1" to `members`). The Form owns columns A–E; the bot writes F–I:
+## How members and data are tracked
 
-| Column | Field | Written by |
-| --- | --- | --- |
-| A | Timestamp | Form |
-| B | Full Name | Form |
-| C | LinkedIn | Form |
-| D | Discord Username | Form |
-| E | Student Email | Form |
-| F | Role (`GSU`, `National`, or `GSU+National`) | Bot |
-| G | Verified | Bot |
-| H | Date Joined | Bot |
-| I | Discord User ID | Bot |
+State lives in a single Google Spreadsheet with three tabs:
 
-The Form's questions must be ordered Full Name, LinkedIn, Discord Username, Student Email so they land in columns B–E. A National member whose email matches a GSU domain (see `GSU_EMAIL_DOMAINS`) is auto-granted the GSU role and recorded as `GSU+National`; other-chapter members get `National` only.
+- **Form responses** — owned by the Google Form. The bot only reads it, matching people
+  by their Discord-username answer and reading their name, student email, LinkedIn, and
+  national-application answer.
+- **`members`** — owned by the bot. One row per verified member: Discord ID and username,
+  name, student email, LinkedIn, role (`GSU` / `National` / `GSU+National`), verified flag,
+  and the date they joined.
+- **`pending_verifications`** — the manual admin-review queue used by `/approve` and
+  `/deny`.
 
-Create a `pending_verifications` tab with these columns:
+## Admin commands
 
-| Column | Field |
-| --- | --- |
-| A | Discord User ID |
-| B | Discord Username |
-| C | Role Requested |
-| D | Submitted Data JSON |
-| E | Status |
-| F | Reason |
-| G | Timestamp |
+- `/setup` — posts the welcome message and **Verify Membership** button in a channel.
+- `/approve` — manually grant a member their role and record them (override).
+- `/deny` — reject a pending verification and DM the person.
+- `/pending` — list members awaiting manual review.
 
-Share the sheet with the Google service account email as an editor.
+## How it runs
 
-## Discord Setup
+The bot is **HTTP interactions-only** — it has no always-on gateway connection. It runs
+as a Vercel serverless function that responds to Discord's interaction webhooks at
+`api/interactions.js`, calls the Discord REST API to manage roles and messages, and reads
+and writes the Google Sheet for membership data.
 
-Create these roles and channels manually:
-
-- `GSU Member`
-- `ColorStack National Member`
-- `#welcome-and-rules`
-- `#unverified-general`
-- `#admin-pending`
-
-Set the Discord Developer Portal interaction endpoint to:
-
-```text
-https://your-vercel-project.vercel.app/api/interactions
-```
-
-## Commands
-
-Install dependencies and register commands:
-
-```powershell
-npm install
-npm run register-commands
-```
-
-If `GUILD_ID` is set, commands register to that guild for fast iteration. Without `GUILD_ID`, the script registers global commands.
-
-## Development
-
-Run tests:
-
-```powershell
-npm test
-```
-
-The bot has no persistent gateway connection. It only handles Discord HTTP interactions at `api/interactions.js`.
+Configuration (Discord credentials, Google service account, sheet/tab names, role and
+channel IDs) is supplied through environment variables — see [`.env.example`](.env.example).

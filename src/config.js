@@ -3,11 +3,11 @@ function getConfig(env = process.env) {
     discordPublicKey: env.DISCORD_PUBLIC_KEY,
     discordBotToken: env.DISCORD_BOT_TOKEN,
     discordApplicationId: env.DISCORD_APPLICATION_ID,
-    geminiApiKey: env.GEMINI_API_KEY,
-    geminiModel: env.GEMINI_MODEL || 'gemini-3.5-flash',
     googleServiceAccountEmail: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     googlePrivateKey: env.GOOGLE_PRIVATE_KEY,
     googleSheetId: env.GOOGLE_SHEET_ID,
+    formResponsesSheet: env.FORM_RESPONSES_SHEET || 'Form Responses 1',
+    membersSheet: env.MEMBERS_SHEET || 'members',
     gsuRoleId: env.GSU_ROLE_ID,
     nationalRoleId: env.NATIONAL_ROLE_ID,
     guildId: env.GUILD_ID,
@@ -21,8 +21,7 @@ function getConfig(env = process.env) {
       .split(',')
       .map((domain) => domain.trim().toLowerCase())
       .filter(Boolean),
-    discordApiBaseUrl: env.DISCORD_API_BASE_URL || 'https://discord.com/api/v10',
-    maxScreenshotBytes: Number(env.MAX_SCREENSHOT_BYTES || 10 * 1024 * 1024)
+    discordApiBaseUrl: env.DISCORD_API_BASE_URL || 'https://discord.com/api/v10'
   };
 }
 

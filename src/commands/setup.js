@@ -10,15 +10,9 @@ function welcomeComponents() {
       components: [
         {
           type: ComponentType.BUTTON,
-          style: ButtonStyle.PRIMARY,
-          custom_id: 'btn_join_gsu',
-          label: 'Join as GSU Member'
-        },
-        {
-          type: ComponentType.BUTTON,
           style: ButtonStyle.SUCCESS,
-          custom_id: 'btn_join_national',
-          label: 'Join as National Member'
+          custom_id: 'btn_verify',
+          label: 'Verify Membership'
         }
       ]
     }
@@ -44,11 +38,9 @@ function welcomeMessage(config) {
     '',
     '## Getting Access',
     '',
-    'Click the button below that applies to you:',
-    '- 🟦 **Join as GSU Member**: for Georgia State University students',
-    '- 🟩 **Join as National Member**: for students already in ColorStack nationally',
+    'First, fill out our member form (link in the channels above). Then click **Verify Membership** below.',
     '',
-    '*National members with a GSU email automatically get GSU access too.*',
+    'We\'ll match you to your form response and set you up automatically. If you marked that you\'re a ColorStack National member, you\'ll get National access too.',
     '',
     `Run into any issues? Drop a message in ${fallback} and an admin will help you out.`
   ].join('\n');

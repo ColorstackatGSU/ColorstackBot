@@ -1,8 +1,6 @@
 const { getConfig } = require('../config');
 const { createResilientFetch } = require('../utils/fetch');
 const { createDiscordService } = require('./discord');
-const { createGeminiService } = require('./gemini');
-const { createMediaService } = require('./media');
 const { createSheetsService } = require('./sheets');
 
 function createRuntimeServices(overrides = {}) {
@@ -25,24 +23,6 @@ function createRuntimeServices(overrides = {}) {
           this._discord = overrides.discord || createDiscordService({ config, fetchImpl });
         }
         return this._discord;
-      }
-    },
-    gemini: {
-      enumerable: true,
-      get() {
-        if (!this._gemini) {
-          this._gemini = overrides.gemini || createGeminiService({ config });
-        }
-        return this._gemini;
-      }
-    },
-    media: {
-      enumerable: true,
-      get() {
-        if (!this._media) {
-          this._media = overrides.media || createMediaService({ config, fetchImpl });
-        }
-        return this._media;
       }
     },
     sheets: {

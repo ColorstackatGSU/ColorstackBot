@@ -7,12 +7,8 @@ function adminPermissionString() {
 function buildCommands() {
   return [
     {
-      name: 'join-gsu',
-      description: 'Verify as a ColorStack GSU member from the GSU signup sheet.'
-    },
-    {
-      name: 'join-national',
-      description: 'Verify as a ColorStack National member.'
+      name: 'verify',
+      description: 'Verify your ColorStack GSU membership from the member form.'
     },
     {
       name: 'setup',
