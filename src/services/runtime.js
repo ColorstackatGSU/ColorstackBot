@@ -2,6 +2,7 @@ const { getConfig } = require('../config');
 const { createResilientFetch } = require('../utils/fetch');
 const { createDiscordService } = require('./discord');
 const { createSheetsService } = require('./sheets');
+const { createPortalService } = require('./portal');
 
 function createRuntimeServices(overrides = {}) {
   const config = overrides.config || getConfig();
@@ -32,6 +33,15 @@ function createRuntimeServices(overrides = {}) {
           this._sheets = overrides.sheets || createSheetsService({ config });
         }
         return this._sheets;
+      }
+    },
+    portal: {
+      enumerable: true,
+      get() {
+        if (!this._portal) {
+          this._portal = overrides.portal || createPortalService({ config, fetchImpl });
+        }
+        return this._portal;
       }
     }
   });

@@ -8,7 +8,7 @@ function servicesWithFormResponse(response) {
   const calls = {
     assignRoles: [],
     edit: [],
-    findFormResponse: [],
+    lookups: [],
     upsertMember: []
   };
 
@@ -30,11 +30,15 @@ function servicesWithFormResponse(response) {
           calls.edit.push(payload);
         }
       },
-      sheets: {
-        async findFormResponse(payload) {
-          calls.findFormResponse.push(payload);
+      // Verification reads the member from the portal now. The members tab is still
+      // the bot's own record of who it verified, so upsertMember stays on sheets.
+      portal: {
+        async findMemberByDiscordUsername(discordUsername) {
+          calls.lookups.push(discordUsername);
           return response;
-        },
+        }
+      },
+      sheets: {
         async upsertMember(payload) {
           calls.upsertMember.push(payload);
         }
@@ -64,7 +68,7 @@ test('the verify button grants GSU only when the member did not apply nationally
 
   await runVerify(services);
 
-  assert.deepEqual(calls.findFormResponse[0], { discordUsername: 'rapha' });
+  assert.equal(calls.lookups[0], 'rapha');
   assert.deepEqual(calls.assignRoles[0], {
     guildId: 'guild-1',
     userId: 'user-1',

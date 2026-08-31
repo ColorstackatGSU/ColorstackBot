@@ -21,7 +21,11 @@ function getConfig(env = process.env) {
       .split(',')
       .map((domain) => domain.trim().toLowerCase())
       .filter(Boolean),
-    discordApiBaseUrl: env.DISCORD_API_BASE_URL || 'https://discord.com/api/v10'
+    discordApiBaseUrl: env.DISCORD_API_BASE_URL || 'https://discord.com/api/v10',
+    // The member portal's API. Verification reads members from here rather than from the
+    // form's response tab, so a handle corrected in the portal is the one that counts.
+    portalApiBaseUrl: env.PORTAL_API_URL,
+    portalSharedSecret: env.BOT_SHARED_SECRET
   };
 }
 

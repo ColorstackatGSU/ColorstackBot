@@ -17,7 +17,10 @@ async function processVerify(interaction, services) {
   const discordUsername = getDiscordUsername(user);
   const fallback = channelMention(services.config.unverifiedChannelId, 'unverified-general');
 
-  const response = await services.sheets.findFormResponse({ discordUsername });
+  // From the portal, not the form's response tab: a member who changed their Discord
+  // handle can fix it on their profile and verify, which the frozen form answer never
+  // allowed.
+  const response = await services.portal.findMemberByDiscordUsername(discordUsername);
 
   if (!response) {
     return {
